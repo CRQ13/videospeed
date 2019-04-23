@@ -137,9 +137,13 @@
         // Ignore ratechange events on unitialized videos.
         // 0 == No information is available about the media resource.
         if (event.target.readyState > 0) {
+          this.video.playbackRate = tc.settings.speeds[this.video.src];
+
           var speed = this.getSpeed();
+
           this.speedIndicator.textContent = speed;
           tc.settings.speeds[this.video.src] = speed;
+          tc.settings.speed = speed;
           chrome.storage.sync.set({'speed': speed}, function() {
             console.log('Speed setting saved: ' + speed);
           });
@@ -426,13 +430,18 @@
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/media/html_media_element.cc?gsn=kMinRate&l=166
           var s = Math.min((v.playbackRate < 0.1 ? 0.0 : v.playbackRate) + value, 16);
           v.playbackRate = Number(s.toFixed(2));
+          tc.settings.speeds[v.src] = v.playbackRate
         } else if (action === 'slower') {
           // Video min rate is 0.0625:
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/media/html_media_element.cc?gsn=kMinRate&l=165
           var s = Math.max(v.playbackRate - value, 0.07);
           v.playbackRate = Number(s.toFixed(2));
+          tc.settings.speeds[v.src] = v.playbackRate
+
         } else if (action === 'reset') {
           resetSpeed(v, 1.0);
+          tc.settings.speeds[v.src] = v.playbackRate
+
         } else if (action === 'display') {
           controller.classList.add('vsc-manual');
           controller.classList.toggle('vsc-hidden');
